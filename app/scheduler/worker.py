@@ -208,7 +208,6 @@ def main_task(loop: asyncio.AbstractEventLoop, range_days: int = 3, delta_days: 
     task_type = "Ручная" if "manual" in threading.current_thread().name else "Запланированная"
     
     try:
-        """
         _send_step_notification(f"🟡 {task_type} задача начата (Поток: {thread_id})", loop=loop)
         
         # Шаг 1: Получение данных
@@ -225,7 +224,6 @@ def main_task(loop: asyncio.AbstractEventLoop, range_days: int = 3, delta_days: 
         _send_step_notification("🟡 Шаг 3: Получение недостающей информации...", loop=loop)
         get_missing_info(file_path=file_path)
         _send_step_notification("✅ Шаг 3 завершен: Недостающая информация получена", loop=loop)
-        """
         
         # Шаг 4: Запись в таблицу
         _send_step_notification("🟡 Шаг 4: Запись данных в таблицу...", loop=loop)
