@@ -141,5 +141,5 @@ class GoogleTable:
         """Запускаем запись данных"""
         config.logger.info("Запускаем запись данных в таблицу")
 
-        self.insert_data(data=data, start_row=count_rows, worksheet_num=2)
+        self.insert_data(data=data, start_row=count_rows, worksheet_num=config.WORKSHEET_NUM)
 

@@ -1,4 +1,5 @@
 # Внешние зависимости
+from typing import Optional
 from dataclasses import dataclass, field
 from dotenv import load_dotenv
 import os
@@ -22,7 +23,14 @@ class Config:
     TIMEOUT_WORK_MINUTES: int = field(default_factory=lambda: int(os.getenv("TIMEOUT_WORK_MINUTES", 300)))
     RANGE_DAYS_WORK: int = field(default_factory=lambda: int(os.getenv("RANGE_DAYS_WORK", 7)))
     DELTA_DAYS_WORK: int = field(default_factory=lambda: int(os.getenv("DELTA_DAYS_WORK", 7)))
+    WORKSHEET_NUM: int = field(default_factory=lambda: int(os.getenv("WORKSHEET_NUM", 0)))
     
+    PROXY: Optional[str] = field(default_factory=lambda: os.getenv("PROXY"))
+    PROXIES = {
+        'http': PROXY,
+        'https': PROXY
+    }
+
     logger: logging.Logger = field(init=False)
 
     def __post_init__(self):

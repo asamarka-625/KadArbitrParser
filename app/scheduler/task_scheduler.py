@@ -118,6 +118,10 @@ class TaskScheduler:
 
     def _run_with_timeout(self, func, job_id, *args, **kwargs):
         """Запуск функции с таймаутом и уведомлениями (для планировщика)"""
+        # Создаем событие для остановки
+        stop_event = threading.Event()
+        self._stop_events[task_name] = stop_event
+            
         def task_wrapper():
             try:
                 config.logger.info(f"Запланированная задача '{job_id}' начата")

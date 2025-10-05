@@ -30,16 +30,27 @@ class ParserPDF:
     def read_pdf_by_url(self, url: str) -> Optional[bytes]:
         """Получаем PDF файл"""
         try:
-            response = self.session.post(url, headers=self.HEADERS, data={"RecaptchaToken": "undefined"})
+            kwargs_for_requests = {
+                headers: self.HEADERS,
+                data: {"RecaptchaToken": "undefined"},
+                timeout: 15
+            }
+            
+            if config.PROXY is not None:
+                kwargs_for_requests["proxies"] = config.PROXIES
+                
+            response = self.session.post(url, **kwargs_for_requests)
             response.raise_for_status()
 
             return response.content
 
         except requests.HTTPError as err:
             config.logger.error(f"Ошибка запроса к PDF файлу. HTTPError: {err}")
+            raise
 
         except Exception as err:
             config.logger.error(f"Ошибка запроса к PDF файлу. Error: {err}")
+            raise
 
     def _parse_pdf_content(self, pdf_content: bytes) -> Optional[str]:
         """Парсим содержимое PDF"""
@@ -59,7 +70,7 @@ class ParserPDF:
 
         except Exception as err:
             config.logger.error(f"Ошибка парсинга PDF: {err}")
-            raise
+            return None
 
     @staticmethod
     def find_saint_petersburg_string(text: str) -> Optional[str]:
@@ -160,6 +171,9 @@ class ParserPDF:
             if find_inn:
                 inn = self.find_inn_number(text)
                 answer["inn"] = inn
+        
+        else:
+           raise ValueError("text is None") 
 
         return answer
 
@@ -168,21 +182,29 @@ def parser_PDF_file_from_links(cards: Dict) -> Dict[str, Dict[str, Optional[str]
     result = {}
     i = 0
     card_ids = list(cards.keys())
-
+    parser = ParserPDF()
+    
     while i < len(card_ids):
+        config.logger.info(f"[{i+1}/{len(cards)}] Поиск информации в PDF файле дела {id_card}")
+        
         id_card = card_ids[i]
         data = cards[id_card]
-
+        
         try:
-            config.logger.info(f"[{i+1}/{len(cards)}] Поиск информации в PDF файле дела {id_card}")
-            parser = ParserPDF()
+            if i % 10 == 0 and i != 0:
+                parser.close()
+                parser = ParserPDF()
+            
             info = parser.run_get_info_from_pfd(
                 url=data["link_pdf"],
                 find_address=data["find_address"],
                 find_inn=data["find_inn"]
             )
             result[id_card] = info
-
+        
+        except ValueError:
+            time.sleep(30)
+            
         except:
             time.sleep(300)
 
@@ -190,20 +212,4 @@ def parser_PDF_file_from_links(cards: Dict) -> Dict[str, Dict[str, Optional[str]
             i += 1
 
     return result
-
-
-if __name__ == "__main__":
-    url1 = "https://kad.arbitr.ru/Document/Pdf/ae26aae5-853d-4f68-bfb5-9d47dd5eca5c/821fa53e-6683-4ac8-9cf1-2e2e8fcf6220/A56-94777-2025_20250929_Opredelenie.pdf?isAddStamp=True"
-    url2 = "https://kad.arbitr.ru/Document/Pdf/4eec04c1-40eb-40ef-9ba6-f8273e241679/52f5a45f-7ced-4a72-b570-a9eb8cfb8d45/A56-94286-2025_20250929_Opredelenie.pdf?isAddStamp=True"
-
-    parser = ParserPDF()
-
-    for url in (url1, url2)[:1]:
-        info = parser.run_get_info_from_pfd(
-            url=url,
-            find_address=True,
-            find_inn=True
-        )
-
-        print(info)
 
