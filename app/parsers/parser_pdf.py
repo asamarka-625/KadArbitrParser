@@ -184,7 +184,7 @@ def parser_PDF_file_from_links(cards: Dict) -> Dict[str, Dict[str, Optional[str]
             result[id_card] = info
 
         except:
-            time.sleep(20)
+            time.sleep(300)
 
         else:
             i += 1
