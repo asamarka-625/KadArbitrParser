@@ -61,7 +61,7 @@ def parser_link_PDF_from_cards(cards: Dict[str, str]) -> Dict[str, Optional[str]
     data = [(key, value) for key, value in cards.items()]
     
     while i < len(cards):
-        id_card, url_card = data
+        id_card, url_card = data[i]
         try:
             if i % 10 == 0 and i != 0:
                 parser.close()
