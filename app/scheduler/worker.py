@@ -41,7 +41,7 @@ def get_data(range_days: int, delta_days: int, file_path: str):
             config.logger.info(f"len data: {len(data)}")
 
             config.logger.info(f"len existing_ids_case: {len(existing_ids_case)}")
-
+        
     except KeyboardInterrupt:
         config.logger.info("(get_data) Получен сигнал остановки...")
 

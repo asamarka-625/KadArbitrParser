@@ -11,6 +11,9 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Даем права пользователю seluser на рабочую директорию
+RUN chown -R seluser:seluser /app
+
 # Переключаемся обратно на пользователя seluser
 USER seluser
 
