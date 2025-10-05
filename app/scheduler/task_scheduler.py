@@ -195,7 +195,7 @@ class TaskScheduler:
 
         job = self.scheduler.add_job(
             self._run_with_timeout,
-            trigger=CronTrigger(hour='*/5'),
+            trigger=CronTrigger(hour='*/8'),
             args=[func, job_id] + list(args),
             kwargs=kwargs,
             id=job_id,
