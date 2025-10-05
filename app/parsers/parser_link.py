@@ -1,5 +1,6 @@
 # Внешние зависимости
 from typing import Optional, Dict
+import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -55,18 +56,31 @@ def parser_link_PDF_from_cards(cards: Dict[str, str]) -> Dict[str, Optional[str]
     result = {}
     parser = ParserLinks()
     parser.setup_driver()
+    
+    i = 0
+    data = [(key, value) for key, value in cards.items()]
+    
+    while i < len(cards):
+        id_card, url_card = data
+        try:
+            if i % 10 == 0 and i != 0:
+                parser.close()
+                
+                parser = ParserLinks()
+                parser.setup_driver()
 
-    for i, (id_card, url_card) in enumerate(cards.items()):
-        if i % 10 == 0 and i != 0:
-            parser = ParserLinks()
-            parser.setup_driver()
-
-        config.logger.info(f"[{i+1}/{len(cards)}] Поиск ссылки на PDF файл дела {id_card}")
-        link_pdf = parser.run(url_card)
-        result[id_card] = link_pdf
-
+            config.logger.info(f"[{i+1}/{len(cards)}] Поиск ссылки на PDF файл дела {id_card}")
+            link_pdf = parser.run(url_card)
+        
+        except:
+            time.sleep(300)
+            
+        else:
+            result[id_card] = link_pdf
+            i += 1
+    
     parser.close()
-
+    
     return result
 
 
