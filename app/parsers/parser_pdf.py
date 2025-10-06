@@ -31,9 +31,9 @@ class ParserPDF:
         """Получаем PDF файл"""
         try:
             kwargs_for_requests = {
-                headers: self.HEADERS,
-                data: {"RecaptchaToken": "undefined"},
-                timeout: 15
+                "headers": self.HEADERS,
+                "data": {"RecaptchaToken": "undefined"},
+                "timeout": 15
             }
             
             if config.PROXY is not None:
