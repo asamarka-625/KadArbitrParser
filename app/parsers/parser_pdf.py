@@ -185,10 +185,10 @@ def parser_PDF_file_from_links(cards: Dict) -> Dict[str, Dict[str, Optional[str]
     parser = ParserPDF()
     
     while i < len(card_ids):
-        config.logger.info(f"[{i+1}/{len(cards)}] Поиск информации в PDF файле дела {id_card}")
-        
         id_card = card_ids[i]
         data = cards[id_card]
+        
+        config.logger.info(f"[{i+1}/{len(cards)}] Поиск информации в PDF файле дела {id_card}")
         
         try:
             if i % 10 == 0 and i != 0:
