@@ -1,5 +1,6 @@
 # Внешние зависимости
 import time
+import pytz
 import threading
 import asyncio
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
@@ -116,7 +117,7 @@ class TaskScheduler:
             except Exception as e:
                 config.logger.error(f"Ошибка отправки уведомления: {e}")
 
-    def _run_with_timeout(self, func, job_id, *args, **kwargs):
+    def _run_with_timeout(self, task_name, func, *args, **kwargs):
         """Запуск функции с таймаутом и уведомлениями (для планировщика)"""
         # Создаем событие для остановки
         stop_event = threading.Event()
@@ -124,11 +125,11 @@ class TaskScheduler:
             
         def task_wrapper():
             try:
-                config.logger.info(f"Запланированная задача '{job_id}' начата")
+                config.logger.info(f"Запланированная задача '{task_name}' начата")
                 
                 # Уведомление о начале задачи
                 if self.bot_manager:
-                    self._send_notification_sync(f"🟡 Запланированная задача '{job_id}' начата")
+                    self._send_notification_sync(f"🟡 Запланированная задача '{task_name}' начата")
                 
                 start_time = time.time()
                 
@@ -137,77 +138,77 @@ class TaskScheduler:
                 task_kwargs['stop_event'] = stop_event
                 task_kwargs['loop'] = self._main_event_loop
                 
-                result = func(*args, **kwargs)
+                result = func(*args, **task_kwargs)
                 
                 execution_time = time.time() - start_time
                 
-                config.logger.info(f"Запланированная задача '{job_id}' завершена за {execution_time:.2f} сек")
+                config.logger.info(f"Запланированная задача '{task_name}' завершена за {execution_time:.2f} сек")
                 
                 # Уведомление об успешном завершении
                 if self.bot_manager:
-                    self._send_notification_sync(f"✅ Запланированная задача '{job_id}' завершена за {execution_time:.2f} сек")
+                    self._send_notification_sync(f"✅ Запланированная задача '{task_name}' завершена за {execution_time:.2f} сек")
                 
                 return result
 
             except Exception as e:
-                config.logger.error(f"Ошибка в запланированной задаче '{job_id}': {e}")
+                config.logger.error(f"Ошибка в запланированной задаче '{task_name}': {e}")
                 if self.bot_manager:
-                    self._send_notification_sync(f"❌ Ошибка в запланированной задаче '{job_id}': {str(e)}")
+                    self._send_notification_sync(f"❌ Ошибка в запланированной задаче '{task_name}': {str(e)}")
                     
                 raise
 
         try:
             # Запускаем задачу с таймаутом
             future = self.executor.submit(task_wrapper)
-            self.running_scheduled_tasks[job_id] = {
+            self.running_scheduled_tasks[task_name] = {
                 'future': future,
                 'start_time': time.time(),
                 'thread': threading.current_thread().ident
             }
 
             result = future.result(timeout=self.task_timeout)
-            self.running_scheduled_tasks.pop(job_id, None)
+            self.running_scheduled_tasks.pop(task_name, None)
             return result
 
         except TimeoutError:
-            config.logger.error(f"Запланированная задача '{job_id}' превысила лимит времени ({self.task_timeout} сек)")
+            config.logger.error(f"Запланированная задача '{task_name}' превысила лимит времени ({self.task_timeout} сек)")
             
             if self.bot_manager:
-                self._send_notification_sync(f"⏰ Запланированная задача '{job_id}' превысила лимит времени ({self.task_timeout} сек)")
+                self._send_notification_sync(f"⏰ Запланированная задача '{task_name}' превысила лимит времени ({self.task_timeout} сек)")
 
-            if job_id in self.running_scheduled_tasks:
-                future = self.running_scheduled_tasks[job_id]['future']
+            if task_name in self.running_scheduled_tasks:
+                future = self.running_scheduled_tasks[task_name]['future']
                 if not future.done():
                     future.cancel()
-                self.running_scheduled_tasks.pop(job_id, None)
+                self.running_scheduled_tasks.pop(task_name, None)
             
             return None
 
         except Exception as e:
-            config.logger.error(f"Неожиданная ошибка в запланированной задаче '{job_id}': {e}")
-            self.running_scheduled_tasks.pop(job_id, None)
+            config.logger.error(f"Неожиданная ошибка в запланированной задаче '{task_name}': {e}")
+            self.running_scheduled_tasks.pop(task_name, None)
             return None
 
     # Методы для запланированных задач
-    def add_hourly_job(self, job_id, func, timeout_minutes=180, *args, **kwargs):
-        """Добавление задачи на выполнение каждые 5 часов"""
+    def add_hourly_job(self, task_name, func, timeout_minutes=180, *args, **kwargs):
+        """Добавление задачи на выполнение"""
         self.task_timeout = timeout_minutes * 60
 
         job = self.scheduler.add_job(
             self._run_with_timeout,
-            trigger=CronTrigger(hour='*/8'),
-            args=[func, job_id] + list(args),
+            trigger=CronTrigger(day_of_week="sat", hour=0, minute=0, timezone=pytz.timezone('Europe/Moscow')),
+            args=[task_name, func] + list(args),
             kwargs=kwargs,
-            id=job_id,
+            id=task_name,
             replace_existing=True,
             max_instances=1
         )
 
-        self.jobs[job_id] = job
-        config.logger.info(f"Запланированная задача '{job_id}' добавлена (каждые 5 часов)")
+        self.jobs[task_name] = job
+        config.logger.info(f"Запланированная задача '{task_name}' добавлена (в субботу в 00:00)")
         
         if self.bot_manager:
-            self._send_notification_sync(f"📅 Запланированная задача '{job_id}' добавлена (каждые 5 часов)")
+            self._send_notification_sync(f"📅 Запланированная задача '{task_name}' добавлена (в субботу в 00:00)")
     
     async def stop_manual_task(self, task_name):
         """Остановка ручной задачи с механизмом безопасной остановки"""
