@@ -3,6 +3,7 @@ import io
 import re
 from typing import Optional, Dict
 import time
+import random
 import PyPDF2
 import requests
 from fake_useragent import UserAgent
@@ -29,6 +30,7 @@ class ParserPDF:
 
     def read_pdf_by_url(self, url: str) -> Optional[bytes]:
         """Получаем PDF файл"""
+        config.logger.info(f"Делаем запрос к ресурсу: {url}")
         try:
             kwargs_for_requests = {
                 "headers": self.HEADERS,
@@ -37,10 +39,18 @@ class ParserPDF:
             }
             
             if config.PROXY is not None:
-                kwargs_for_requests["proxies"] = config.PROXIES
+                kwargs_for_requests["proxies"] = {
+                    'http': config.PROXY,
+                    'https': config.PROXY
+                }
                 
             response = self.session.post(url, **kwargs_for_requests)
             response.raise_for_status()
+
+            content_type = response.headers.get('content-type', '')
+            if 'pdf' not in content_type.lower():
+                config.logger.warning(f"Получен не PDF файл. Content-Type: {content_type}")
+                return None
 
             return response.content
 
@@ -192,7 +202,6 @@ def parser_PDF_file_from_links(cards: Dict) -> Dict[str, Dict[str, Optional[str]
         
         try:
             if i % 10 == 0 and i != 0:
-                parser.close()
                 parser = ParserPDF()
             
             info = parser.run_get_info_from_pfd(
@@ -205,11 +214,14 @@ def parser_PDF_file_from_links(cards: Dict) -> Dict[str, Dict[str, Optional[str]
         except ValueError:
             time.sleep(30)
             
-        except:
+        except Exception as err:
+            config.logger.error(f"Ошибка при выгрузке информации из PDF файла: {err}")
+            config.logger.info(f"Ждем 300 секунд...")
             time.sleep(300)
 
         else:
             i += 1
+            time.sleep(random.uniform(3, 5))
 
     return result
 

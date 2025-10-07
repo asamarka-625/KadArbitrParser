@@ -209,17 +209,17 @@ def main_task(loop: asyncio.AbstractEventLoop, range_days: int = 3, delta_days: 
     
     try:
         _send_step_notification(f"🟡 {task_type} задача начата (Поток: {thread_id})", loop=loop)
-        
+        """
         # Шаг 1: Получение данных
         _send_step_notification("🟡 Шаг 1: Получение данных...", loop=loop)
         get_data(range_days=range_days, delta_days=delta_days, file_path=file_path)
         _send_step_notification("✅ Шаг 1 завершен: Данные получены", loop=loop)
-
+        
         # Шаг 2: Получение ссылок PDF
         _send_step_notification("🟡 Шаг 2: Получение ссылок на PDF...", loop=loop)
         get_links_PDF_from_data(file_path=file_path)
         _send_step_notification("✅ Шаг 2 завершен: Ссылки на PDF получены", loop=loop)
-
+        """
         # Шаг 3: Получение недостающей информации
         _send_step_notification("🟡 Шаг 3: Получение недостающей информации...", loop=loop)
         get_missing_info(file_path=file_path)

@@ -26,10 +26,6 @@ class Config:
     WORKSHEET_NUM: int = field(default_factory=lambda: int(os.getenv("WORKSHEET_NUM", 0)))
     
     PROXY: Optional[str] = field(default_factory=lambda: os.getenv("PROXY"))
-    PROXIES = {
-        'http': PROXY,
-        'https': PROXY
-    }
 
     logger: logging.Logger = field(init=False)
 
