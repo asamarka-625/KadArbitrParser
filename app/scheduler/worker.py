@@ -8,6 +8,7 @@ import threading
 from app.parsers.parser import Parser
 from app.parsers.parser_link import parser_link_PDF_from_cards
 from app.parsers.parser_pdf import parser_PDF_file_from_links
+from app.parsers.parser_address import ParserAddress
 from app.table.google_table_work import GoogleTable
 from app.settings.config import get_config
 from app.bot.bot_manager import get_bot_manager
@@ -166,6 +167,46 @@ def get_missing_info(file_path: str):
         config.logger.info(f"Файл {file_path} успешно перезаписан")
 
 
+def get_district_address(file_path: str):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            config.logger.info(f"Файл {file_path} успешно прочитан")
+
+    except FileNotFoundError:
+        config.logger.error(f"(get_district_address): Файл {file_path} не найден")
+        return None
+
+    except json.JSONDecodeError as e:
+        config.logger.error(f"(get_district_address): Ошибка декодирования JSON: {e}")
+        return None
+
+    except Exception as e:
+        config.logger.error(f"(get_district_address): Ошибка при чтении файла: {e}")
+        return None
+
+    else:
+        parser = ParserAddress()
+        new_data = []
+
+        for el in data[::-1]:
+            address = el["respondent"]["data"]
+            district = parser.run(address=address)
+
+            if district is not None:
+                el["respondent"]["district"] = district
+
+            else:
+                el["respondent"]["district"] = ""
+
+            new_data.append(el)
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(new_data, f, ensure_ascii=False, indent=4)
+
+        config.logger.info(f"Файл {file_path} успешно перезаписан")
+
+
 def update_table(file_path: str):
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -209,12 +250,12 @@ def main_task(loop: asyncio.AbstractEventLoop, range_days: int = 3, delta_days: 
     
     try:
         _send_step_notification(f"🟡 {task_type} задача начата (Поток: {thread_id})", loop=loop)
-
+        """
         # Шаг 1: Получение данных
         _send_step_notification("🟡 Шаг 1: Получение данных...", loop=loop)
         get_data(range_days=range_days, delta_days=delta_days, file_path=file_path)
         _send_step_notification("✅ Шаг 1 завершен: Данные получены", loop=loop)
-        
+        """
         # Шаг 2: Получение ссылок PDF
         _send_step_notification("🟡 Шаг 2: Получение ссылок на PDF...", loop=loop)
         get_links_PDF_from_data(file_path=file_path)
@@ -224,11 +265,16 @@ def main_task(loop: asyncio.AbstractEventLoop, range_days: int = 3, delta_days: 
         _send_step_notification("🟡 Шаг 3: Получение недостающей информации...", loop=loop)
         get_missing_info(file_path=file_path)
         _send_step_notification("✅ Шаг 3 завершен: Недостающая информация получена", loop=loop)
-        
-        # Шаг 4: Запись в таблицу
-        _send_step_notification("🟡 Шаг 4: Запись данных в таблицу...", loop=loop)
+
+        # Шаг 4: Получение районов
+        _send_step_notification("🟡 Шаг 4: Получение районов...", loop=loop)
+        get_district_address(file_path=file_path)
+        _send_step_notification("✅ Шаг 4 завершен: Районы получены", loop=loop)
+
+        # Шаг 5: Запись в таблицу
+        _send_step_notification("🟡 Шаг 5: Запись данных в таблицу...", loop=loop)
         update_table(file_path=file_path)
-        _send_step_notification("✅ Шаг 4 завершен: Данные записаны", loop=loop)
+        _send_step_notification("✅ Шаг 5 завершен: Данные записаны", loop=loop)
 
         _send_step_notification("🎉 Все задачи успешно выполнены!", loop=loop)
     

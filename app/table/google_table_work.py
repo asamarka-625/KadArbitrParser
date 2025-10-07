@@ -71,8 +71,9 @@ class GoogleTable:
                 row.get('case_num_case', ''),  # Дело
                 row.get('case_case_link', ''),  # Ссылка
                 row.get('respondent_name', ''),  # ФИО Ответчик
-                row.get('respondent_data', ''),  # Адрес проживания
                 row.get('respondent_inn', ''),  # ИНН
+                row.get('respondent_data', ''),  # Адрес проживания
+                row.get('respondent_district', ''),  # Район
             ]
             rows.append(row_data)
 
@@ -122,11 +123,11 @@ class GoogleTable:
         return result
 
     def get_all_ids_case(self) -> Tuple[int, Set[str]]:
-        """Идентификаторы дел с определенной датой в указанном столбце"""
-        config.logger.info("Получаем идентификаторы дел с определенной датой из таблицы")
+        """Идентификаторы всех дел из таблицы"""
+        config.logger.info("Получаем идентификаторы всех дел из таблицы")
 
         worksheet_info = self.get_worksheet_info()
-        worksheet = self.table.worksheet(worksheet_info['names'][0])
+        worksheet = self.table.worksheet(worksheet_info['names'][config.WORKSHEET_NUM])
 
         all_rows = worksheet.get_all_values()
 
@@ -136,6 +137,16 @@ class GoogleTable:
 
         return len(ids_case), ids_case
 
+    def get_all_data(self) -> Tuple[int, Set[str]]:
+        """Вся информация из талицы из таблицы"""
+        config.logger.info("Получаем всю информацию из таблицы")
+
+        worksheet_info = self.get_worksheet_info()
+        worksheet = self.table.worksheet(worksheet_info['names'][config.WORKSHEET_NUM])
+
+        all_rows = worksheet.get_all_values()
+
+        return all_rows
 
     def run_update_table(self, data: List, count_rows: int):
         """Запускаем запись данных"""

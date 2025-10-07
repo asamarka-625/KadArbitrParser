@@ -16,7 +16,10 @@ class Config:
     GOOGLE_KEYS_PATH: str = field(default_factory=lambda: os.getenv("GOOGLE_KEYS_PATH"))
     
     COOKIES_FOR_PARSER_PATH: str = field(default_factory=lambda: os.getenv("COOKIES_FOR_PARSER_PATH"))
-    
+
+    GIS_KEY: str = field(default_factory=lambda: os.getenv("GIS_KEY"))
+    COUNT_USED_GIS_KEY: int = 0
+
     ADMIN_ID: int = field(default_factory=lambda: int(os.getenv("ADMIN_ID")))
     BOT_TOKEN: str = field(default_factory=lambda: os.getenv("BOT_TOKEN"))
     

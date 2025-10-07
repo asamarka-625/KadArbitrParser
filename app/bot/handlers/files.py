@@ -62,5 +62,8 @@ async def start_command(message: types.Message):
 /stop_all_tasks - остановить все задачи
 /download_log - скачать логи
 /download_data - скачать данные
+/gis_key_view - посмотреть ключ 2GIS
+/gis_key_update - обновить ключ 2GIS
+/gis_key_used_update - обновить кол-во использований ключа
 """
     await message.answer(welcome_text)

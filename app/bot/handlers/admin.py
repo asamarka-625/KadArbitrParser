@@ -110,3 +110,56 @@ async def stop_all_tasks(message: types.Message, bot_manager, loop):
     result = await bot_manager.stop_all_manual_tasks(loop)
     
     await message.answer(f"⏹️ Задачи остановлены: {result}")
+
+
+@router.message(Command("gis_key_view"))
+async def view_gis_key(message: types.Message):
+    """Посмотреть ключ 2GIS"""
+    if message.from_user.id != config.ADMIN_ID:
+        await message.answer("❌ У вас нет прав для выполнения этой команды")
+        return
+
+    await message.answer(
+        f"Текущий ключ 2GIS: {config.GIS_KEY}\n"
+        f"Использовано раз: {config.COUNT_USED_GIS_KEY}"
+    )
+
+@router.message(Command("gis_key_update"))
+async def update_gis_key(message: types.Message):
+    """Обновить ключ 2GIS"""
+    if message.from_user.id != config.ADMIN_ID:
+        await message.answer("❌ У вас нет прав для выполнения этой команды")
+        return
+
+    # Получаем ключ из аргумента
+    parts = message.text.split(maxsplit=1)
+    if len(parts) < 2:
+        await message.answer("❌ Использование: /gis_key_update ключ")
+        return
+
+    config.GIS_KEY = parts[1]
+    config.COUNT_USED_GIS_KEY = 0
+
+    await message.answer(f"Новый ключ 2GIS: {config.GIS_KEY}")
+
+
+@router.message(Command("gis_key_used_update"))
+async def update_count_used_gis_key(message: types.Message):
+    """Обновить кол-во использований ключа 2GIS"""
+    if message.from_user.id != config.ADMIN_ID:
+        await message.answer("❌ У вас нет прав для выполнения этой команды")
+        return
+
+    # Получаем ключ из аргумента
+    parts = message.text.split(maxsplit=1)
+    if len(parts) < 2:
+        await message.answer("❌ Использование: /gis_key_used_update число")
+        return
+
+    if not parts[1].isdigit():
+        await message.answer("❌ Использование: /gis_key_used_update число")
+        return
+
+    config.COUNT_USED_GIS_KEY = int(parts[1])
+
+    await message.answer(f"Использовано раз: {config.COUNT_USED_GIS_KEY}")

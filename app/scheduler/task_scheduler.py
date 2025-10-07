@@ -196,7 +196,7 @@ class TaskScheduler:
 
         job = self.scheduler.add_job(
             self._run_with_timeout,
-            trigger=CronTrigger(day_of_week="sat", hour=0, minute=0, timezone=pytz.timezone('Europe/Moscow')),
+            trigger=CronTrigger(hour=17, minute=48),# day_of_week="sat", hour=0, minute=0, timezone=pytz.timezone('Europe/Moscow')),
             args=[task_name, func] + list(args),
             kwargs=kwargs,
             id=task_name,
