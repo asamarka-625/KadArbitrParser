@@ -43,7 +43,7 @@ class GoogleTable:
         worksheet = self.table.worksheet(title)
         worksheet.insert_row(data, index=index)
 
-    def insert_data(self, data: list, start_row: int = 2, worksheet_num: int = 0) -> None:
+    def insert_data(self, data: list, start_row: int = 2, worksheet_num: int = 0):
         config.logger.info("Вставляем данные в лист")
 
         # Определяем фиксированные заголовки
@@ -137,6 +137,30 @@ class GoogleTable:
 
         return len(ids_case), ids_case
 
+    def clear_all_rows_except_first(self, start_del_row: int = 2, worksheet_num: int = 0):
+        """Удаляет все строки в таблице, кроме первой (заголовков)"""
+        try:
+            worksheet_info = self.get_worksheet_info()
+            worksheet = self.table.worksheet(worksheet_info['names'][worksheet_num])
+
+            # Получаем количество строк в таблице
+            row_count = worksheet.row_count
+
+            # Если в таблице больше 1 строки, удаляем все начиная со второй
+            if row_count > 1:
+                config.logger.info(f"Удаляем {row_count - (start_del_row - 1)} строк(и) из таблицы, оставляя только заголовки")
+
+                # Удаляем строки со 2-й до последней
+                worksheet.delete_rows(start_del_row, row_count)
+
+                config.logger.info("Все строки кроме первой успешно удалены")
+            else:
+                config.logger.info("В таблице только одна строка или она пуста, удаление не требуется")
+
+        except Exception as e:
+            config.logger.error(f"Ошибка при удалении строк: {e}")
+            raise
+
     def get_all_data(self) -> Tuple[int, Set[str]]:
         """Вся информация из талицы из таблицы"""
         config.logger.info("Получаем всю информацию из таблицы")
@@ -148,9 +172,8 @@ class GoogleTable:
 
         return all_rows
 
-    def run_update_table(self, data: List, count_rows: int):
+    def run_update_table(self, data: List, start_row: int):
         """Запускаем запись данных"""
         config.logger.info("Запускаем запись данных в таблицу")
-
-        self.insert_data(data=data, start_row=count_rows, worksheet_num=config.WORKSHEET_NUM)
-
+        self.clear_all_rows_except_first(start_del_row=start_row, worksheet_num=config.WORKSHEET_NUM)
+        self.insert_data(data=data, start_row=start_row, worksheet_num=config.WORKSHEET_NUM)
