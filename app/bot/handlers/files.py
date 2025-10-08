@@ -55,16 +55,13 @@ async def start_command(message: types.Message):
 
 Доступные команды:
 Команды:
-/status - статус системы
-
+/status - статус системы\n\n
 /run_now - запустить задачу сейчас
 /tasks - список задач
 /stop_task NAME - остановить задачу
-/stop_all_tasks - остановить все задачи
-
+/stop_all_tasks - остановить все задачи\n\n
 /download_log - скачать логи
-/download_data - скачать данные
-
+/download_data - скачать данные\n\n
 /gis_key_view - посмотреть ключ 2GIS
 /gis_key_update - обновить ключ 2GIS
 /gis_key_used_update - обновить кол-во использований ключа
