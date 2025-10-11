@@ -191,9 +191,11 @@ def get_district_address(file_path: str):
 
         for el in data[::-1]:
             address = el["respondent"]["data"]
+            config.logger.info(f"Получаем район из адреса: {address}")
+            
             district = parser.run(address=address)
 
-            if district is not None:
+            if district:
                 el["respondent"]["district"] = district
 
             else:
@@ -250,7 +252,7 @@ def main_task(loop: asyncio.AbstractEventLoop, range_days: int = 3, delta_days: 
     
     try:
         _send_step_notification(f"🟡 {task_type} задача начата (Поток: {thread_id})", loop=loop)
-
+        
         # Шаг 1: Получение данных
         _send_step_notification("🟡 Шаг 1: Получение данных...", loop=loop)
         get_data(range_days=range_days, delta_days=delta_days, file_path=file_path)
@@ -265,7 +267,7 @@ def main_task(loop: asyncio.AbstractEventLoop, range_days: int = 3, delta_days: 
         _send_step_notification("🟡 Шаг 3: Получение недостающей информации...", loop=loop)
         get_missing_info(file_path=file_path)
         _send_step_notification("✅ Шаг 3 завершен: Недостающая информация получена", loop=loop)
-
+      
         # Шаг 4: Получение районов
         _send_step_notification("🟡 Шаг 4: Получение районов...", loop=loop)
         get_district_address(file_path=file_path)
