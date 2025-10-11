@@ -267,7 +267,7 @@ def main_task(loop: asyncio.AbstractEventLoop, range_days: int = 3, delta_days: 
         _send_step_notification("🟡 Шаг 3: Получение недостающей информации...", loop=loop)
         get_missing_info(file_path=file_path)
         _send_step_notification("✅ Шаг 3 завершен: Недостающая информация получена", loop=loop)
-      
+        
         # Шаг 4: Получение районов
         _send_step_notification("🟡 Шаг 4: Получение районов...", loop=loop)
         get_district_address(file_path=file_path)

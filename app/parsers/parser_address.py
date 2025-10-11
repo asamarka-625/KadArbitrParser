@@ -33,12 +33,13 @@ class ParserAddress:
     @staticmethod
     def get_district(info: dict) -> Optional[str]:
         for item in info["items"]:
-            if item.get("adm_div") is not None \
-                and len(item["adm_div"]) >= 3 and (item["adm_div"][3].get("name") is not None:
+            if (item.get("adm_div") is not None 
+                and len(item["adm_div"]) >= 4 
+                and item["adm_div"][3].get("name") is not None):
                     return item["adm_div"][3]["name"]
         
         return None
-
+            
     def run(self, address: str) -> Optional[str]:
         config.COUNT_USED_GIS_KEY += 1
         result = self.get_info_for_address(address=address)

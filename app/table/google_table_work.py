@@ -138,28 +138,25 @@ class GoogleTable:
         return len(ids_case), ids_case
 
     def clear_all_rows_except_first(self, start_del_row: int = 2, worksheet_num: int = 0):
-        """Удаляет все строки в таблице, кроме первой (заголовков)"""
         try:
             worksheet_info = self.get_worksheet_info()
             worksheet = self.table.worksheet(worksheet_info['names'][worksheet_num])
 
-            # Получаем количество строк в таблице
-            row_count = worksheet.row_count
-
-            # Если в таблице больше 1 строки, удаляем все начиная со второй
-            if row_count > 1:
-                config.logger.info(f"Удаляем {row_count - (start_del_row - 1)} строк(и) из таблицы, оставляя только заголовки")
-
-                # Удаляем строки со 2-й до последней
-                worksheet.delete_rows(start_del_row, row_count)
-
-                config.logger.info("Все строки кроме первой успешно удалены")
+            # Получаем все данные
+            all_values = worksheet.get_all_values()
+            
+            if len(all_values) > 1:  # Есть данные кроме заголовка
+                # Оставляем только первую строку (заголовки)
+                headers = all_values[0]
+                worksheet.clear()
+                worksheet.update('A1', [headers])
+                config.logger.info("Таблица очищена, оставлены только заголовки")
+                
             else:
-                config.logger.info("В таблице только одна строка или она пуста, удаление не требуется")
+                config.logger.info("В таблице нет данных для удаления")
 
         except Exception as e:
-            config.logger.error(f"Ошибка при удалении строк: {e}")
-            raise
+            config.logger.error(f"Ошибка при очистке таблицы: {e}")
 
     def get_all_data(self) -> Tuple[int, Set[str]]:
         """Вся информация из талицы из таблицы"""
